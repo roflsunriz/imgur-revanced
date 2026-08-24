@@ -1,5 +1,16 @@
 # 実機・互換性検証記録
 
+## 0.2.0（2026-08-24）
+
+- 7.34.0の通常起動が `MainActivity` から `GridAndFeedNavActivity` のhome destination `SPACES` へ進み、Spaces生成後にDiscover feedを取得することを逆コンパイル結果で確認した。
+- Discover非表示ONではNavControllerの初期化を維持したままhome destinationを `PROFILE` へ変更し、Postsを先頭タブ、既存のPostFilter patchでAllを初期値にした。
+- Discover非表示OFF、data付きdeep link、extra付き通知・shortcutでは従来経路を維持することをStartupPolicy unit testで確認した。
+- CLI 6.0.0で4.22.1、6.3.12、7.34.0へ適用し、旧 `GridAndFeedActivity` と新 `GridAndFeedNavActivity` の両起動経路でDEX・resourcesの再構築、整列、署名が成功した。
+- 生成DEXで、7.34.0と6.3.12は設定ON時だけhome destinationが `PROFILE`、4.22.1の旧経路は `super.onCreate` 後にProfileへ転送され、設定OFFでは元のonCreateへ進むことを確認した。
+- Android 16 / API 36のheadless emulatorで、設定ONのコールド起動時にPostsが選択され、設定OFFではMost Viral、User Sub、Featured、Arcade、For Youを含むDiscover画面が表示された。両分岐でFATAL例外はなかった。
+- Android 16 / API 36のUSB実機でも、元のPlay版を残した検証専用packageで同じON/OFF挙動と設定保持を確認した。ONの起動ログにはSpacesDestinationFragment、SpacesViewModel、Most Viral、User Sub、FATAL例外の痕跡がなかった。
+- 設定ONではnavigation graphがProfileを直接生成するため、Discover通信を行うSpacesDestinationFragment、SpacesViewModel、ContentAreaManagerは起動時に生成されない。アプリ全体のFirebase、認証、Profile等の通信は本要件の遮断対象外。
+
 ## 0.1.1（2026-08-24）
 
 - 0.1.0の公開URLをManagerへ追加したところ、`created_at` 末尾の `Z` をLocalDateTimeとして解析できず、パッチを取得できないことを実機ログで確認した。

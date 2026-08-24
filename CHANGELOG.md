@@ -4,9 +4,20 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-24
+
 ### Added
 
 - 公開成果物を後から監査できるように、0.1.1のSHA-256、attestation、Manager固定URL、公開RVP適用結果を検証記録へ追加した。
+
+### Changed
+
+- Discoverを非表示にした利用者が不要なfeedを経由せず投稿を確認できるように、通常起動のhome destinationをProfileのPosts（All）へ変更した。
+- Discover設定の影響を判断できるように、起動先と通信遮断を説明する要約を主要11言語へ追加した。
+
+### Security
+
+- Discover非表示時の不要なインターネットアクセスを防ぐため、SpacesのFragment・ViewModel・content managerを生成する前にProfileをhome destinationとして設定するようにした。
 
 ## [0.1.1] - 2026-08-24
 
@@ -35,6 +46,7 @@
 - ビルド時の既知DoS脆弱性を避けるため、Patcherの推移依存Commons Langを修正版3.20.0へ固定した。
 - 配布RVPの由来と改ざんを検証できるように、release workflowへSHA-256とGitHub Artifact Attestationを追加した。
 
-[Unreleased]: https://github.com/roflsunriz/imgur-revanced/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/roflsunriz/imgur-revanced/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.2.0
 [0.1.1]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.1.1
 [0.1.0]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.1.0

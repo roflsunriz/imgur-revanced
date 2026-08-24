@@ -2,11 +2,14 @@ package app.revanced.patches.imgur
 
 import app.revanced.patcher.firstMethod
 import app.revanced.patcher.firstMethodOrNull
+import app.revanced.patcher.extensions.ExternalLabel
 import app.revanced.patcher.extensions.addInstructions
+import app.revanced.patcher.extensions.addInstructionsWithLabels
 import app.revanced.patcher.patch.bytecodePatch
 import app.revanced.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
 
@@ -91,6 +94,70 @@ val imgurReVancedPatch = bytecodePatch(
             1,
             "invoke-static {p0}, $EXTENSION->initialize(Landroid/content/Context;)V",
         )
+
+        val modernStartupActivity = "Lcom/imgur/mobile/newpostdetail/GridAndFeedNavActivity;"
+        val modernStartupConstructor = firstMethod {
+            definingClass == modernStartupActivity &&
+                name == "<init>" &&
+                parameterTypes.isEmpty() &&
+                returnType == "V"
+        }
+        val startupConstructorImplementation = requireNotNull(modernStartupConstructor.implementation)
+        val homeDestinationIndex = startupConstructorImplementation.instructions.indexOfFirst { instruction ->
+            if (instruction.opcode != Opcode.IPUT_OBJECT) {
+                return@indexOfFirst false
+            }
+            val reference = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            reference?.definingClass == modernStartupActivity &&
+                reference.name == "homeDestination" &&
+                reference.type == "Lcom/imgur/mobile/common/navigation/NavDestination;"
+        }
+        if (homeDestinationIndex >= 0) {
+            firstMethod(modernStartupConstructor).addInstructions(
+                homeDestinationIndex + 1,
+                "invoke-static {p0}, $EXTENSION->configureStartupDestination(Ljava/lang/Object;)V",
+            )
+        }
+
+        buildList {
+            if (homeDestinationIndex < 0) {
+                add(modernStartupActivity)
+            }
+            add("Lcom/imgur/mobile/gallery/feed/GridAndFeedActivity;")
+        }.forEach { legacyActivityClass ->
+            val legacyOnCreate = firstMethodOrNull {
+                definingClass == legacyActivityClass &&
+                    name == "onCreate" &&
+                    parameterTypes.singleOrNull() == "Landroid/os/Bundle;" &&
+                    returnType == "V"
+            } ?: return@forEach
+            val implementation = requireNotNull(legacyOnCreate.implementation)
+            require(implementation.registerCount > 2) {
+                "${legacyOnCreate.definingClass} onCreate has no local register for startup redirect"
+            }
+            val superOnCreateIndex = implementation.instructions.indexOfFirst { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                (instruction.opcode == Opcode.INVOKE_SUPER ||
+                    instruction.opcode == Opcode.INVOKE_SUPER_RANGE) &&
+                    reference?.name == "onCreate" &&
+                    reference.parameterTypes.singleOrNull() == "Landroid/os/Bundle;" &&
+                    reference.returnType == "V"
+            }
+            require(superOnCreateIndex >= 0) {
+                "${legacyOnCreate.definingClass} onCreate does not call super.onCreate"
+            }
+            val continueLegacyStartup = implementation.instructions.elementAt(superOnCreateIndex + 1)
+            firstMethod(legacyOnCreate).addInstructionsWithLabels(
+                superOnCreateIndex + 1,
+                """
+                    invoke-static {p0}, $EXTENSION->redirectLegacyStartupToProfile(Landroid/app/Activity;)Z
+                    move-result v0
+                    if-eqz v0, :imgur_revanced_continue_legacy_startup
+                    return-void
+                """.trimIndent(),
+                ExternalLabel("imgur_revanced_continue_legacy_startup", continueLegacyStartup),
+            )
+        }
 
         firstMethodOrNull {
             definingClass == "Lcom/imgur/mobile/profile/PostFilterViewModel;" &&

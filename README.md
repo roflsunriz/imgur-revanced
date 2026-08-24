@@ -11,6 +11,7 @@ Imgur Androidアプリ向けのReVancedパッチです。ImgurのAPK自体は配
 - 複数画像ポストでも、選択した画像の直リンクを使用する。
 - Imgur内の設定に「Imgur ReVanced」を追加し、直リンク／アルバムリンクを切り替える。初期値は直リンク。
 - Discover、Search、Notificationsを個別に非表示にする。初期値はすべて非表示で、残ったタブは均等配置する。
+- Discover非表示時はアプリ起動先をProfileのPosts（All）にし、DiscoverのFragment・ViewModelを生成せず起動時通信を遮断する。Discover表示時は従来の起動画面を維持する。
 
 設定はImgurの `Profile > Settings > Imgur ReVanced` にあります。
 
@@ -45,7 +46,7 @@ $env:GITHUB_TOKEN = "<read:packages権限を持つトークン>"
 成果物は `patches/build/libs/patches-<version>.rvp` です。リリース成果物にはGitHub Artifact Attestationを付与します。
 
 ```text
-gh attestation verify patches-0.1.1.rvp --repo roflsunriz/imgur-revanced
+gh attestation verify patches-0.2.0.rvp --repo roflsunriz/imgur-revanced
 ```
 
 ## 注意
