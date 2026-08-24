@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- 0.2.0の公開成果物を監査できるように、SHA-256、attestation、Manager固定URL、公開RVP適用結果を検証記録へ追加した。
+
 ## [0.2.0] - 2026-08-24
 
 ### Added

@@ -10,6 +10,9 @@
 - Android 16 / API 36のheadless emulatorで、設定ONのコールド起動時にPostsが選択され、設定OFFではMost Viral、User Sub、Featured、Arcade、For Youを含むDiscover画面が表示された。両分岐でFATAL例外はなかった。
 - Android 16 / API 36のUSB実機でも、元のPlay版を残した検証専用packageで同じON/OFF挙動と設定保持を確認した。ONの起動ログにはSpacesDestinationFragment、SpacesViewModel、Most Viral、User Sub、FATAL例外の痕跡がなかった。
 - 設定ONではnavigation graphがProfileを直接生成するため、Discover通信を行うSpacesDestinationFragment、SpacesViewModel、ContentAreaManagerは起動時に生成されない。アプリ全体のFirebase、認証、Profile等の通信は本要件の遮断対象外。
+- 公開RVPのSHA-256 `6dd9a607eff1a624a7bf2f0630886f1bd58ada5f26843ab4cf2f8a8c648f0a64` がrelease metadataと `SHA256SUMS` に一致した。
+- `gh attestation verify` で、公開RVPが `refs/tags/v0.2.0` のrelease workflowとGitHub-hosted runnerから生成されたことを確認した。
+- 実機Managerの固定URLを `v0.2.0 / 1個のパッチ` として再取得し、公開RVPで7.34.0の16 DEXとresourcesの再構築、APK整列、`result.apk` 保存まで完走した。
 
 ## 0.1.1（2026-08-24）
 
