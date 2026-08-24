@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- ReVanced Manager 2.6.0が公開パッチソースを読み込めるように、`created_at` をoffsetなしのLocalDateTime形式へ修正した。
+
 ## [0.1.0] - 2026-08-24
 
 ### Added
