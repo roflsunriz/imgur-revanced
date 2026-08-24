@@ -1,3 +1,14 @@
 COMMON-AGENTS.md
 imgur-apks/
 temp/
+.gradle/
+**/build/
+.idea/
+*.iml
+local.properties
+*.apk
+*.apks
+*.aab
+*.jks
+*.keystore
+hs_err_pid*.log

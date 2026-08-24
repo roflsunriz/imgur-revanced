@@ -1,0 +1,43 @@
+# 実機・互換性検証記録
+
+## 0.1.0（2026-08-24）
+
+### 検証環境
+
+- ReVanced Patcher 22.0.1
+- ReVanced CLI 6.0.0
+- ReVanced Manager 2.6.0
+- Android 16 / API 36 / arm64のUSB接続実機
+- Imgur 4.22.1、6.3.12、7.34.0の単体APK
+
+### 自動・静的検証
+
+- Gradleのunit test、lint、RVE/RVP buildが成功した。
+- LinkPolicyについて、直リンク選択、アルバムリンク選択、null/空値fallback、画像IDと拡張子からのURL生成をunit testで確認した。
+- Manifest変換について、広告componentと広告ID権限の除去、他componentの保持、Facebook追跡metadataの無効化、広告layout高さの0dp化をunit testで確認した。
+- CLI 6.0.0で4.22.1、6.3.12、7.34.0へ同じRVPを適用し、いずれも警告・エラーなしでpatched APKを生成した。
+- 7.34.0の生成物で、Application初期化、PostsのAll初期値、一覧長押し、Profile Posts長押し、共有URL、下部タブ、広告停止の各注入箇所と追加resourcesを逆コンパイル結果で確認した。
+
+### 実機検証
+
+- 検証専用package IDでPlay版Imgurを残したまま7.34.0を導入し、起動と画面遷移でFATAL例外がないことを確認した。
+- 下部ナビゲーションは初期状態でCreate/Profileの2項目が各630pxになった。Searchを表示へ変更するとSearch/Create/Profileの3項目が各420pxになり、再起動後も設定が保持された。
+- SettingsのSign out直前にImgur ReVancedが表示され、日本語の4スイッチを操作できた。
+- 直リンク設定ONで、詳細画面の共有文がタイトルと `https://i.imgur.com/ajwALwB.jpeg` になった。
+- 直リンク設定OFFで、同じ共有文がタイトルと `https://imgur.com/gallery/kenya-believe-UoIrI8c` に戻った。
+- 下部広告枠が表示されず、実行中processのログにGoogle Mobile Ads、AppLovin、SafeDK、Facebook Audience Network、MediaLab、Moloco、MobileFuse、MBridge、comScore、AdvertisingIdClientの初期化・通信痕跡がないことを確認した。
+- ManagerへローカルRVPを追加すると「Imgur ReVanced 0.1.0 / 1個のパッチ」として認識された。7.34.0の単体APKをストレージから選択し、16 DEXとresourcesの再構築、APK整列、署名、`result.apk` 保存まで完走した。
+
+### 検証中に見つけて修正した問題
+
+- AdsModule constructorをsuper constructorより前でreturnしていたためAndroidの検証エラーになった。`Object.<init>` の直後で停止するよう修正した。
+- StickyAdViewを通常Viewへ置換するとViewBindingのcastが壊れたため、型は保持してMediaLabの初期化・読み込み処理をno-op化した。
+- 旧版のPreference APIに存在しない動的screen生成を使っていたため、XML resourceを読み込む方式へ変更した。
+- `copyImageUrl` が画像直リンクではなくgallery URLだったため、実機の引数実測に基づき `downloadImageUrl` を選択画像の直リンクとして使うよう修正した。
+
+### 未検証範囲と残るリスク
+
+- 検証専用packageはログアウト状態だったため、ログイン必須のProfile Posts一覧で長押しコピーを最後まで操作できていない。7.34.0の対象bind methodへの注入、URL生成unit test、生成DEXは確認済み。
+- 複数画像ポストは共有処理が選択画像の `downloadImageUrl` を使うことを生成DEXで確認したが、異なる拡張子を含む全形式の実機操作までは網羅していない。
+- ImgurのコンテンツAPIが通常ポストとして返すPromoted投稿は広告SDK経路ではないため、フィード内に残る場合がある。
+- 「バージョン非依存」は将来版を無条件に保証する意味ではない。4.22.1から7.34.0までの構造差を許容することを確認しており、Imgur更新時は本記録の手順で再検証する。

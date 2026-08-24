@@ -1,0 +1,5 @@
+[versions]
+revanced-patcher = "22.0.1"
+# Patcher 22.0.1 と同じ Smali 系列を使用する。
+#noinspection GradleDependency
+smali = "3.0.9"
