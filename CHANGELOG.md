@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-24
+
 ### Fixed
 
 - ReVanced Manager 2.6.0が公開パッチソースを読み込めるように、`created_at` をoffsetなしのLocalDateTime形式へ修正した。
@@ -29,5 +31,6 @@
 - ビルド時の既知DoS脆弱性を避けるため、Patcherの推移依存Commons Langを修正版3.20.0へ固定した。
 - 配布RVPの由来と改ざんを検証できるように、release workflowへSHA-256とGitHub Artifact Attestationを追加した。
 
-[Unreleased]: https://github.com/roflsunriz/imgur-revanced/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/roflsunriz/imgur-revanced/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.1.1
 [0.1.0]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.1.0

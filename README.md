@@ -45,7 +45,7 @@ $env:GITHUB_TOKEN = "<read:packages権限を持つトークン>"
 成果物は `patches/build/libs/patches-<version>.rvp` です。リリース成果物にはGitHub Artifact Attestationを付与します。
 
 ```text
-gh attestation verify patches-0.1.0.rvp --repo roflsunriz/imgur-revanced
+gh attestation verify patches-0.1.1.rvp --repo roflsunriz/imgur-revanced
 ```
 
 ## 注意
