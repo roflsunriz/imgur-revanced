@@ -1,5 +1,15 @@
 # 実機・互換性検証記録
 
+## 0.1.1（2026-08-24）
+
+- 0.1.0の公開URLをManagerへ追加したところ、`created_at` 末尾の `Z` をLocalDateTimeとして解析できず、パッチを取得できないことを実機ログで確認した。
+- `created_at` をoffsetなし形式へ修正し、タグ、RVP名、固定URLを0.1.1へ揃えて修正版を公開した。
+- 固定URLをManager 2.6.0へ追加し、「Imgur ReVanced v0.1.1 / 1個のパッチ」として自動ダウンロードされたことを確認した。
+- 固定URLから取得した公開RVPで7.34.0を処理し、16 DEXとresourcesの再構築、APK整列、`result.apk` 保存まで完走した。
+- 公開RVPのSHA-256 `01223e5feb892702a21ad8a9c92b79ee1d511af4e8d648d45b2e61e1fa1a7fd3` がrelease metadataと `SHA256SUMS` に一致した。
+- `gh attestation verify` で、公開RVPが `refs/tags/v0.1.1` のrelease workflowとGitHub-hosted runnerから生成されたことを確認した。
+- ローカルRVPとrelease runnerのRVPを展開比較すると、class、DEX、RVEは同一で、公式Gradle pluginが生成時刻を格納するManifestの `Timestamp` だけが異なった。公開RVPそのものは前項のManager適用で機能確認した。
+
 ## 0.1.0（2026-08-24）
 
 ### 検証環境
