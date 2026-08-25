@@ -55,7 +55,7 @@ $env:GITHUB_TOKEN = "<read:packages権限を持つトークン>"
 1. `gradle.properties`、タグ、`patches.json`、CHANGELOGのバージョンが一致することを確認する。
 2. `## [Unreleased]` の内容を `## [x.y.z] - YYYY-MM-DD` へ移す。
 3. mainへpushし、Build workflowが成功するまで修正する。
-4. `vx.y.z` タグをpushする。Release workflowがRVP、SHA-256、Manager用JSONを公開し、provenance attestationを生成する。
+4. `vx.y.z` タグをpushする。Release workflowがCHANGELOGから該当バージョンの節だけをリリース本文へ抽出し、RVP、SHA-256、Manager用JSONを公開してprovenance attestationを生成する。該当節がなければworkflowは失敗する。
 5. `gh attestation verify`、release assetのSHA-256、ManagerのURL追加とAPK生成を公開物で再確認する。
 
 workflowは最初に短寿命の `GITHUB_TOKEN` で公式GitHub Packagesを読み取る。Packages側のrepository access制限で401/403になる場合だけ、`read:packages` に限定した専用PATをrepository secret `GPR_KEY` として設定する。通常のCLI用トークンや広い権限のPATを流用しない。

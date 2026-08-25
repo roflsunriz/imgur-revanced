@@ -8,6 +8,11 @@
 
 - 0.2.0の公開成果物を監査できるように、SHA-256、attestation、Manager固定URL、公開RVP適用結果を検証記録へ追加した。
 
+### Changed
+
+- リリースごとの変更点だけを判別できるように、Release workflowと既存の全リリース本文を該当バージョンのCHANGELOG節だけを掲載する形式へ変更した。
+- GitHub Actionsのcheckout処理へ最新の修正を取り込むため、`actions/checkout`を7.0.1へ更新した。
+
 ## [0.2.0] - 2026-08-24
 
 ### Added
