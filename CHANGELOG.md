@@ -10,6 +10,7 @@
 
 ### Changed
 
+- 依存更新を安全に省力化するため、Dependabot の patch／minor PR を既存 CI の全チェック成功後に自動取り込みし、失敗ジョブを一度再実行する設定を追加した。
 - リリースごとの変更点だけを判別できるように、Release workflowと既存の全リリース本文を該当バージョンのCHANGELOG節だけを掲載する形式へ変更した。
 - GitHub Actionsのcheckout処理へ最新の修正を取り込むため、`actions/checkout`を7.0.1へ更新した。
 
