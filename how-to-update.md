@@ -23,6 +23,8 @@ PowerShellでは認証情報を環境変数へ設定して実行する。値を�
 ```powershell
 $env:GITHUB_ACTOR = "<GitHubユーザー名>"
 $env:GITHUB_TOKEN = "<read:packages権限を持つトークン>"
+$env:ORG_GRADLE_PROJECT_githubPackagesUsername = $env:GITHUB_ACTOR
+$env:ORG_GRADLE_PROJECT_githubPackagesPassword = $env:GITHUB_TOKEN
 .\gradlew.bat clean build :patches:buildAndroid --no-daemon --no-configuration-cache
 ```
 
@@ -39,13 +41,15 @@ $env:GITHUB_TOKEN = "<read:packages権限を持つトークン>"
 
 フィンガープリントが見つからない場合、クラス名だけを追加して強引に通さず、呼び出し元、引数、戻り値、対象命令列が同じ責務であることを逆コンパイル結果から確認する。任意対応にしたフックは、該当機能が存在しない版だけで省略されていることを確認する。
 
+CLI同梱のAAPT2を使う。Android SDK版を `--custom-aapt2-binary` で指定すると、stock APKの `$` 付きdrawable名で再構築に失敗することがある。
+
 ## 実機とManagerを確認する
 
 1. 元のPlay版とデータを保護し、必要なら検証専用の別package IDを一時的に使う。検証専用patchを配布RVPへ含めない。
 2. 起動直後と主要画面遷移後のFATAL例外を確認する。
 3. Discover非表示ONでコールド起動するとPosts（All）が選択され、Spaces/DiscoverのFragment・ViewModel・feed取得が発生しないことを確認する。
 4. Discover非表示OFFでは従来のDiscover画面が起動し、設定の両分岐が再起動後も保持されることを確認する。
-5. Profile Postsの初期値、一覧・詳細の画像長押し、複数画像、共有文、設定保存、タブの均等配置を確認する。
+5. Profile Postsの初期値、一覧・詳細の画像長押し、複数画像、共有文、設定保存、タブの均等配置を確認する。直リンク／アルバムリンクの両設定で、ポスト→画像詳細→戻る操作を繰り返した後の長押しと「Copy Permalink」も確認する。Copy Permalinkの直リンクは先頭画像、画像長押しは選択画像を使い、画像詳細に親ポストURLがない場合は元のコピーURLへfallbackする。
 6. 広告枠が0dpであること、広告ID・各広告SDKの初期化やリクエストが発生しないことをログと通信で確認する。
 7. Managerへ `patches.json` のURLを追加し、単体APKを「ストレージから選択」して、署名済み `result.apk` の生成まで完走させる。
 8. 検証結果と未確認項目を `docs/verification.md` へ追記する。

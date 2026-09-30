@@ -1,5 +1,47 @@
 # 実機・互換性検証記録
 
+## 0.2.1（2026-09-30）
+
+### 既存アプリでの再現
+
+- 更新前のSHARP SH-R80P / Android 16の既存Imgur 7.34.0.0で再現調査した。この段階では更新・アンインストール・データ消去・ログアウトを行っていない。
+- #4は直リンク設定ONで再現した。Profileの2列投稿一覧の項目長押しでは画像直リンク、同じ項目を開いて投稿詳細から一覧へ戻った後の項目長押しではアルバムリンクになった。各段階のUI dumpでProfile一覧と投稿詳細を区別し、コピー結果はFirefoxのアドレス欄へ貼り付けて確認した。URLは送信していない。
+- 最初に行った投稿詳細内の画像→Lightbox→戻る→画像長押しの2投稿では#4を再現しなかった。この操作は報告された一覧の往復経路とは異なる。
+- #5は直リンク設定ONで、ポストのCopy PermalinkがアルバムURLをコピーすることを同じ貼り付け方法で確認した。設定OFFもアルバムURLだった。
+- 既存アプリの投稿詳細内の画像長押しは、設定OFFでLightbox往復前後ともアルバムURLだった。検証前の直リンク設定ONへ戻した。
+
+### 修正と自動検証
+
+- ProfilePostsViewの再attachはDBの投稿モデルを再生成し、Profileの長押しリスナーを再bindする。画像形式が欠けたモデルの再bindを想定し、取得済み先頭画像URLを投稿IDごとに最大256件メモリ保持する。異なる投稿や変更されたカバーIDへ流用せず、設定はコピー時に読む。
+- Copy Permalinkは新旧ポストViewの既存URL生成・Clipboard helperを維持して共通ポリシーへ接続した。ONは先頭画像、OFFは元のポストURL。コメントのPermalinkは変更していない。
+- 画像長押し・共有は選択画像を使い、既存CDN URLの形式・queryを保持する。ポストURLに置換されたImageItemは既知MIMEとIDで直リンクを復元し、親ポストURLがない場合は元のコピーURLを保持する。
+- JDK 17で `clean build :patches:buildAndroid --no-daemon --no-configuration-cache` が成功した。unit test計29件（LinkPolicy 9、MediaLinks 6、ProfileLinks 3、StartupPolicy 4、LinkHooks 4、XmlTransforms 3）が失敗なし、Android lintは `No issues found.`。
+- 回帰テストはProfile一覧の同じ投稿IDで完全モデル→画像形式欠落モデルの再bindを3回繰り返し、ON/OFF、行再利用、変更されたカバー、キャッシュ上限を確認する。画像詳細の別経路、選択した2枚目と先頭画像の区別、旧新モデル、null/未知モデル、DEXのレジスターと既存コピー処理の保持も検証した。
+- 最終RVPをCLI 6.0.0で4.22.1、6.3.12、7.34.0へ適用し、DEX・resources再構築、整列、署名まで成功した。SDK版AAPT2の `$` 付きdrawable名エラーはCLI同梱版を使って解消した。
+- 生成DEXで、3版とも一覧長押し・Profile再bind・共有・Copy Permalinkがextensionへ接続され、既存のPermalink生成・Clipboard helperが残ることを検証した。6.3.12のMediaViewHolder、7.34.0のMediaViewHolder/MediaItemsActions、存在する旧詳細とLightboxの画像URL読み取りも復元処理を通る。コメントのPermalinkにフックが入っていないことも確認した。
+- ローカル0.2.1 RVPのSHA-256は `92cd053704d6a4b5b21f60bc47854786b0938b03492b90484a10f68a445c19c3`。release runnerの公開RVPは生成時刻等でhashが異なり得るため、公開物は同梱SHA256SUMSとattestationで別途検証する。
+
+### 修正版の実機検証
+
+- PCの8月24日の一時CLI署名鍵は所在不明で、当時の検証APK証明書も既存Imgurとは異なった。端末のManager内で修正版APKを生成し、秘密鍵を抽出せず署名した。
+- Manager生成物と既存APKの証明書SHA-256はともに `cddbc1c44abb5b0bc4efab2b9e82291758db40409082c7dda55cd1d771459ab0`。package `com.imgur.mobile` とversionCode `73400` の一致も確認し、承認された `adb install -r` で更新した。firstInstallTimeは変更されず、ログイン済みProfileの投稿を保持した。認証情報の読み取り・変更、アンインストール、データ消去、ログアウトは行っていない。
+- 実測に使ったRVPは版数変更前のビルドだが、パッチの適用ソースは最終0.2.1と同じで、同梱 `extensions/imgur.rve` のbyte列も一致する。Manager生成APKでも今回の各DEXフックを検証した。
+
+| 操作 | 直リンクON | アルバムリンクOFF |
+| --- | --- | --- |
+| Profile一覧の項目長押し | 先頭画像直リンク | アルバムURL |
+| 一覧→投稿詳細→一覧→項目長押し | 3往復とも同じ画像URL | 往復前後で同じアルバムURL |
+| ポストのCopy Permalink | 一覧の先頭画像と同じ直リンク | アルバムURL |
+| 投稿詳細のImgur Copy link | 画像直リンクをコピー | アルバムURLをコピー |
+| 投稿詳細→Lightbox→戻る→画像長押し | 直リンクの共有文 | アルバムURLの共有文 |
+
+- Clipboardの結果はFirefoxのアドレス欄へ貼り付けて確認し、URLは送信していない。LightboxActivityへ入ったこととProfile一覧へ戻ったこともUI/Activityで確認した。リンク設定は検証前のONへ復元した。
+
+### 未検証範囲
+
+- Profileの既知URLはプロセス内の限定キャッシュである。最初から画像メタデータが欠ける投稿、プロセス再起動・キャッシュ退避後にメタデータがない投稿はstockリンクへfallbackする。DBの内容・認証データは取得していないため、実機で欠けたフィールドそのものは未測定。
+- 選択した2枚目、異なる画像形式・動画形式の網羅はhostの回帰テストとDEX検証で確認した。すべての形式・複数画像での実機操作までは網羅していない。
+
 ## 0.2.0（2026-08-24）
 
 - 7.34.0の通常起動が `MainActivity` から `GridAndFeedNavActivity` のhome destination `SPACES` へ進み、Spaces生成後にDiscover feedを取得することを逆コンパイル結果で確認した。

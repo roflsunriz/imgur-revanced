@@ -323,12 +323,42 @@ val imgurReVancedPatch = bytecodePatch(
             """
                 invoke-virtual {p1}, Lcom/imgur/mobile/gallery/inside/models/ImageViewModel;->getImageItem()Lcom/imgur/mobile/common/model/ImageItem;
                 move-result-object v0
-                invoke-virtual {v0}, Lcom/imgur/mobile/common/model/ImageItem;->getLink()Ljava/lang/String;
-                move-result-object v0
-                invoke-static {v0}, $EXTENSION->copyFeedImageLink(Ljava/lang/String;)V
+                invoke-static {v0}, $EXTENSION->copyFeedImageLink(Ljava/lang/Object;)V
                 return-void
             """.trimIndent(),
         )
+
+        // Lightbox conversion may reinitialize the shared legacy ImageItem with a post URL.
+        // Recover only media URL reads; the model's post/share URLs must remain unchanged.
+        listOf(
+            "Lcom/imgur/mobile/newpostdetail/detail/presentation/view/post/viewholder/MediaItemsActions;",
+            "Lcom/imgur/mobile/newpostdetail/detail/presentation/view/post/viewholder/MediaViewHolder;",
+        ).forEach { owner ->
+            firstMethodOrNull {
+                definingClass == owner && name == "getMediaLink" &&
+                    parameterTypes.isEmpty() && returnType == "Ljava/lang/String;"
+            }?.let { require(rewriteImageLinkReads(it) > 0) { "$owner has no legacy image URL read" } }
+        }
+        firstMethodOrNull {
+            definingClass == "Lcom/imgur/mobile/lightbox/LightboxActivity;" &&
+                name == "onShareClick" && parameterTypes.singleOrNull() == "Landroid/view/View;" &&
+                returnType == "V"
+        }?.let { require(rewriteImageLinkReads(it) > 0) { "Lightbox sharing has no image URL read" } }
+
+        firstMethodOrNull {
+            definingClass == "Lcom/imgur/mobile/gallery/inside/GalleryDetail2View;" &&
+                name == "shareDirectLink" && returnType == "V"
+        }?.let { require(rewriteImageLinkReads(it) > 0) { "Legacy sharing has no image URL read" } }
+
+        listOf(
+            "Lcom/imgur/mobile/newpostdetail/detail/presentation/view/poststream/viewholder/PostViewHolder;",
+            "Lcom/imgur/mobile/gallery/inside/GalleryDetail2View;",
+        ).forEach { owner ->
+            firstMethodOrNull {
+                definingClass == owner && name == "copyLink" &&
+                    parameterTypes.isEmpty() && returnType == "V"
+            }?.let { hookPostPermalink(it) }
+        }
 
         firstMethodOrNull {
             definingClass == "Lcom/imgur/mobile/profile/ProfilePostsAdapter\$ProfilePostViewHolder;" &&
@@ -362,7 +392,8 @@ val imgurReVancedPatch = bytecodePatch(
             """
                 move-object/from16 v0, p3
                 move-object/from16 v1, p$directUrlParameter
-                invoke-static {v0, v1}, $EXTENSION->selectShareUrl(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+                move-object/from16 v2, p$copyUrlParameter
+                invoke-static {v0, v2, v1}, $EXTENSION->selectImageShareUrl(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
                 move-result-object v0
                 move-object/from16 p3, v0
                 move-object/from16 p$copyUrlParameter, v0
