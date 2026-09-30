@@ -33,3 +33,11 @@ Get-Content -Raw -LiteralPath .\COMMON-AGENTS.md
 
 ## Environment
 <必要に応じて適宜書き足すこと。>
+
+- GitHub Packagesのローカルビルドには `GITHUB_ACTOR` / `GITHUB_TOKEN` に加えて `ORG_GRADLE_PROJECT_githubPackagesUsername` / `ORG_GRADLE_PROJECT_githubPackagesPassword` を同じ値で渡す。トークンをファイルやログへ保存しない。
+- CLI 6.0.0のAPK再構築には同梱AAPT2を使う。SDK版AAPT2はstockの `$` 付きdrawable名を拒否する。
+- 画像長押し・共有は `ShareUtils$Companion.shareDirectImageLink` が共通経路。旧版の `GalleryDetail2View.shareDirectLink`、新旧Lightbox、現行 `MediaItemsActions` / `MediaViewHolder.getMediaLink` の `ImageItem.getLink` も確認する。
+- ポストのCopy Permalinkは現行 `PostViewHolder.copyLink` と旧 `GalleryDetail2View.copyLink` に分かれる。コメントのCopy Permalinkは別のdeep linkなので変更しない。
+- `GalleryItemApiModel.getImageItem` は共有されるImageItemを `initFromGalleryItem` で更新する。直リンク復元はモデルを書き換えず、既存CDN URLの形式・queryを保持し、既知MIMEとIDがある場合だけ補完する。
+- #4の実測経路はProfileの2列投稿一覧→投稿詳細→一覧へ戻る→一覧項目長押し。投稿詳細内の画像→Lightbox→戻るとは区別する。ProfilePostsViewは再attach時にDBからモデルを再生成する。ProfileLinksは画像形式が欠けた再bindに備え、投稿IDごとに既知の先頭画像URLを最大256件メモリ保持する。別投稿・異なるカバーIDへ流用しない。既知URLがなければstockリンクへfallbackする。
+- 既存ImgurがManager署名の場合、PCの一時CLI鍵とは一致しないことがある。秘密鍵を抽出せずManager内でAPKを生成し、公開証明書・package・versionCodeを既存APKと照合する。一致した承認済みAPKだけ `adb install -r` で更新し、認証維持を確認する。

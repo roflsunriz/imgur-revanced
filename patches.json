@@ -1,7 +1,7 @@
 {
-  "version": "0.2.0",
-  "created_at": "2026-08-24T08:10:42",
-  "description": "Discover非表示時の起動先をPosts（All）へ変更し、Discoverの起動時通信を遮断したリリースです。",
-  "download_url": "https://github.com/roflsunriz/imgur-revanced/releases/download/v0.2.0/patches-0.2.0.rvp",
+  "version": "0.2.1",
+  "created_at": "2026-09-30T10:28:55",
+  "description": "投稿詳細から一覧へ戻った後の長押しコピーとCopy Permalinkの直リンク設定を修正したリリースです。",
+  "download_url": "https://github.com/roflsunriz/imgur-revanced/releases/download/v0.2.1/patches-0.2.1.rvp",
   "signature_download_url": null
 }

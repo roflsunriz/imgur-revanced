@@ -4,8 +4,14 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-30
+
 ### Fixed
 
+- 投稿詳細からProfile一覧へ戻った後も直リンクをコピーできるよう、投稿モデルの画像形式が欠けても先に取得した先頭画像URLを再利用するようにした。一覧とProfileの長押しにも共通のリンク設定を適用した。
+- 画像モデルがポストURLを返す共有経路では、既知の画像IDと形式から選択画像の直リンクを復元するようにした。
+- ポストの「Copy Permalink」が直リンク／アルバムリンク設定に従うようにし、直リンク設定では先頭画像のURLを使うようにした。
+- 親ポストURLがない画像詳細でアルバムリンク設定を使っても、元のコピーURLを保持するようにした。
 - CI と Dependabot の分類の実行順が前後しても更新を取りこぼさないよう、同じ PR 番号と head SHA を再照合する経路を追加した。
 
 ### Added
@@ -60,7 +66,8 @@
 - ビルド時の既知DoS脆弱性を避けるため、Patcherの推移依存Commons Langを修正版3.20.0へ固定した。
 - 配布RVPの由来と改ざんを検証できるように、release workflowへSHA-256とGitHub Artifact Attestationを追加した。
 
-[Unreleased]: https://github.com/roflsunriz/imgur-revanced/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/roflsunriz/imgur-revanced/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.2.1
 [0.2.0]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.2.0
 [0.1.1]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.1.1
 [0.1.0]: https://github.com/roflsunriz/imgur-revanced/releases/tag/v0.1.0

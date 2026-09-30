@@ -22,6 +22,7 @@ public final class ImgurExtension {
     static final String KEY_HIDE_NOTIFICATIONS = "hide_notifications";
 
     private static volatile Context applicationContext;
+    private static final ProfileLinks profileLinks = new ProfileLinks();
 
     private ImgurExtension() {
     }
@@ -45,13 +46,32 @@ public final class ImgurExtension {
 
     public static String selectShareUrl(String albumUrl, String directUrl) {
         Context context = applicationContext;
-        boolean useDirectLinks = context != null && preferences(context).getBoolean(KEY_DIRECT_LINKS, true);
+        boolean useDirectLinks = context == null || preferences(context).getBoolean(KEY_DIRECT_LINKS, true);
         return LinkPolicy.selectShareUrl(albumUrl, directUrl, useDirectLinks);
     }
 
-    public static void copyFeedImageLink(String directUrl) {
+    public static String selectImageShareUrl(String albumUrl, String copyUrl, String directUrl) {
+        String fallback = albumUrl == null || albumUrl.isEmpty() ? copyUrl : albumUrl;
+        return selectShareUrl(fallback, directUrl);
+    }
+
+    public static String imageDirectUrl(Object image) {
+        return MediaLinks.imageUrl(image);
+    }
+
+    public static String selectPermalinkUrl(Object holder, String albumUrl) {
+        return selectShareUrl(albumUrl, MediaLinks.permalinkImageUrl(holder));
+    }
+
+    public static void copyFeedImageLink(Object image) {
+        String directUrl = imageDirectUrl(image);
+        String albumUrl = MediaLinks.stringValue(image, "getShareLink");
+        copyLink(selectShareUrl(albumUrl, directUrl));
+    }
+
+    private static void copyLink(String url) {
         Context context = applicationContext;
-        if (context == null || directUrl == null || directUrl.isEmpty()) {
+        if (context == null || url == null || url.isEmpty()) {
             return;
         }
 
@@ -61,7 +81,7 @@ public final class ImgurExtension {
             return;
         }
 
-        clipboard.setPrimaryClip(ClipData.newPlainText("Imgur direct link", directUrl));
+        clipboard.setPrimaryClip(ClipData.newPlainText("Imgur link", url));
         Toast.makeText(context, LocalizedStrings.linkCopied(context), Toast.LENGTH_SHORT).show();
     }
 
@@ -71,16 +91,11 @@ public final class ImgurExtension {
         }
         try {
             Class<?> modelClass = postViewModel.getClass();
-            Method imageIdMethod = modelClass.getMethod("getImageId");
-            Method extensionMethod = modelClass.getMethod("getImageExtension");
             Method linkMethod = modelClass.getMethod("getLink");
-            String directUrl = LinkPolicy.firstImageDirectUrl(
-                    (String) imageIdMethod.invoke(postViewModel),
-                    (String) extensionMethod.invoke(postViewModel),
-                    (String) linkMethod.invoke(postViewModel)
-            );
+            String albumUrl = (String) linkMethod.invoke(postViewModel);
+            String directUrl = profileLinks.firstImageUrl(postViewModel);
             view.setOnLongClickListener(ignored -> {
-                copyFeedImageLink(directUrl);
+                copyLink(selectShareUrl(albumUrl, directUrl));
                 return true;
             });
         } catch (ReflectiveOperationException ignored) {

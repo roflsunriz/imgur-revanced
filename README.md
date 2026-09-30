@@ -6,9 +6,10 @@ Imgur Androidアプリ向けのReVancedパッチです。ImgurのAPK自体は配
 
 - ProfileのPostsで、初期フィルターをPublicではなくAllにする。
 - 下部の広告枠を0dpにし、同梱広告SDKのManifest自動初期化、広告ID取得、初期化・読み込み経路を停止する。
-- 一覧で画像を長押しすると、その画像の直リンクをクリップボードへコピーする。
+- 一覧で画像を長押しすると、設定に従って画像の直リンクまたはアルバムリンクをクリップボードへコピーする。
 - 詳細画面の「Imgur Copy link」と「テキストの共有」で、アルバムリンクを長押しした画像の直リンクへ置き換える。
 - 複数画像ポストでも、選択した画像の直リンクを使用する。
+- ポストの「Copy Permalink」もリンク設定に従う。直リンク設定では先頭画像、画像の長押しでは選択した画像を使用する。
 - Imgur内の設定に「Imgur ReVanced」を追加し、直リンク／アルバムリンクを切り替える。初期値は直リンク。
 - Discover、Search、Notificationsを個別に非表示にする。初期値はすべて非表示で、残ったタブは均等配置する。
 - Discover非表示時はアプリ起動先をProfileのPosts（All）にし、DiscoverのFragment・ViewModelを生成せず起動時通信を遮断する。Discover表示時は従来の起動画面を維持する。
@@ -30,6 +31,7 @@ https://raw.githubusercontent.com/roflsunriz/imgur-revanced/main/patches.json
 - ReVanced CLI 6.0.0: Imgur 4.22.1、6.3.12、7.34.0へ適用成功
 - ReVanced Manager 2.6.0: Imgur 7.34.0のパッチ済みAPK生成に成功
 - Android 16（API 36、arm64）実機: 起動、設定保存、タブ再配置、広告枠、共有リンク切替を確認
+- 0.2.1: SH-R80P / Android 16で同一署名のデータ保持更新と認証維持を確認。Profile一覧の詳細往復・長押し、Copy Permalink、Imgur Copy linkを直リンク／アルバムリンクの両設定で検証。
 
 詳しい結果と未検証範囲は [実機・互換性検証記録](docs/verification.md) を参照してください。APK更新時の手順は [更新手順](how-to-update.md) にあります。
 
@@ -40,13 +42,15 @@ JDK 17、Android SDK、GitHub Packagesを読み取れるGitHub認証情報が必
 ```powershell
 $env:GITHUB_ACTOR = "<GitHubユーザー名>"
 $env:GITHUB_TOKEN = "<read:packages権限を持つトークン>"
+$env:ORG_GRADLE_PROJECT_githubPackagesUsername = $env:GITHUB_ACTOR
+$env:ORG_GRADLE_PROJECT_githubPackagesPassword = $env:GITHUB_TOKEN
 .\gradlew.bat clean build :patches:buildAndroid --no-daemon --no-configuration-cache
 ```
 
 成果物は `patches/build/libs/patches-<version>.rvp` です。リリース成果物にはGitHub Artifact Attestationを付与します。
 
 ```text
-gh attestation verify patches-0.2.0.rvp --repo roflsunriz/imgur-revanced
+gh attestation verify patches-0.2.1.rvp --repo roflsunriz/imgur-revanced
 ```
 
 ## 注意
