@@ -1,6 +1,6 @@
 # Imgur ReVanced
 
-Imgur Androidアプリ向けのReVancedパッチです。ImgurのAPK自体は配布せず、利用者が用意したstock APKへ適用します。
+Imgur Androidアプリ向けのReVancedパッチです。ImgurのAPK自体は配布せず、利用者が用意した未改変のAPKへ適用します。
 
 ## 機能
 
