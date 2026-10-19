@@ -11,6 +11,10 @@ permissions:
   contents: read
   packages: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   GITHUB_ACTOR: ${{ github.actor }}
   GITHUB_TOKEN: ${{ secrets.GPR_KEY || github.token }}
@@ -32,7 +36,7 @@ jobs:
           cache: gradle
 
       - name: Build and test
-        run: ./gradlew clean build :patches:buildAndroid --no-daemon --no-configuration-cache
+        run: ./gradlew clean build :patches:buildAndroid --no-daemon --no-configuration-cache --parallel --build-cache
 
       - name: Upload RVP
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
