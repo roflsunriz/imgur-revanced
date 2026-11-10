@@ -37,7 +37,21 @@ https://raw.githubusercontent.com/roflsunriz/imgur-revanced/main/patches.json
 
 ## ビルド
 
-詳細は [findings.md](findings.md#readme-1) に移しました。
+JDK 17、Android SDK、GitHub Packagesを読み取れるGitHub認証情報が必要です。
+
+```powershell
+$env:GITHUB_ACTOR = "<GitHubユーザー名>"
+$env:GITHUB_TOKEN = "<read:packages権限を持つトークン>"
+$env:ORG_GRADLE_PROJECT_githubPackagesUsername = $env:GITHUB_ACTOR
+$env:ORG_GRADLE_PROJECT_githubPackagesPassword = $env:GITHUB_TOKEN
+.\gradlew.bat clean build :patches:buildAndroid --no-daemon --no-configuration-cache
+```
+
+成果物は `patches/build/libs/patches-<version>.rvp` です。リリース成果物にはGitHub Artifact Attestationを付与します。
+
+```text
+gh attestation verify patches-0.2.1.rvp --repo roflsunriz/imgur-revanced
+```
 
 ## 注意
 
@@ -51,4 +65,6 @@ GNU General Public License v3.0です。詳細は [LICENSE](LICENSE) を参照�
 
 ## 依存更新の自動処理
 
-詳細は [findings.md](findings.md#readme-2) に移しました。
+更新PRの取り込みは、必要なCIチェックにすべて成功したものだけを対象に、毎月28日18:00（Asia/Tokyo）の月末処理で行います。
+
+Dependabot は対象の依存関係を毎月28日00:00（Asia/Tokyo）に確認します。patch／minor 更新は PR のチェック（Build）が成功した後に自動で squash merge されます。CI の失敗ジョブは 1 回だけ再実行します。再失敗した PR は残して手動で修正します。major 更新も互換性を確認し、同じ月末処理で取り込みます。
